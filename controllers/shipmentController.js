@@ -247,7 +247,7 @@ exports.editShipment = async (req, res) => {
   //     res.status(500).json({ message: "Server Error", error });
   //   }
   // };
-  exports.getShipmentyId = async (req, res) => {
+  exports.getShipmentId = async (req, res) => {
     try {
       const { shipmentId } = req.params; // Get driverId from the URL parameter
   
