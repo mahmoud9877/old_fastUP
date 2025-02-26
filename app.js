@@ -26,7 +26,7 @@ app.use(
 
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1", shipmentRouter);
-app.use("/api/v1", shipmentRouter);
+// app.use("/api/v1", shipmentRouter);
 
 // testing api
 app.get("/test", (req, res, next) => {
