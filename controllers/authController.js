@@ -1,8 +1,7 @@
-const User = require("../models/User");
+const User = require("../models/User.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const ErrorHandler = require("../config/ErrorHandler");
-
 
 exports.register = async (req, res) => {
   try {
@@ -29,7 +28,6 @@ exports.login = async (req, res) => {
     }
     if (password !== user.password) {
       return res.status(400).json({ message: "Invalid credentials" });
-
     }
     // const isMatch = await bcrypt.compare(password, user.password);
     // if (!isMatch) {
@@ -37,7 +35,10 @@ exports.login = async (req, res) => {
     // }
 
     // Generate token
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET);
+    const token = jwt.sign(
+      { id: user._id, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET
+    );
 
     res.json({ token, user });
   } catch (error) {
@@ -59,12 +60,13 @@ exports.addDriver = async (req, res) => {
     });
 
     await newDriver.save();
-    res.status(201).json({ message: "Driver added successfully", driver: newDriver });
+    res
+      .status(201)
+      .json({ message: "Driver added successfully", driver: newDriver });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 exports.changePassword = async (req, res, next) => {
   const { oldPassword, newPassword } = req.body;
@@ -83,7 +85,6 @@ exports.changePassword = async (req, res, next) => {
   // Compare the old password with the hashed password in the database
   if (oldPassword !== user.password) {
     return next(new ErrorHandler("Old password is incorrect.", 401));
-
   }
   //     const isMatch = await bcrypt.compare(oldPassword, user.password);
   //     if (!isMatch) {
@@ -101,7 +102,7 @@ exports.changePassword = async (req, res, next) => {
   await user.save();
 
   res.status(200).json({
-    message: "Password changed successfully."
+    message: "Password changed successfully.",
   });
 };
 
@@ -119,7 +120,10 @@ exports.editProfile = async (req, res, next) => {
   if (TruckNo) user.TruckNo = TruckNo;
   if (phone) user.phone = phone;
   if (IDNo) user.IDNo = IDNo;
-  const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET);
+  const token = jwt.sign(
+    { id: user._id, isAdmin: user.isAdmin },
+    process.env.JWT_SECRET
+  );
 
   await user.save();
 
@@ -129,15 +133,15 @@ exports.editProfile = async (req, res, next) => {
     message: "Profile updated successfully.",
     data: {
       user,
-      token
-    }
+      token,
+    },
   });
 };
 
 exports.getAllDrivers = async (req, res) => {
   try {
     // Find all users who are marked as drivers (modify this condition as per your schema)
-    const drivers = await User.find().populate("shipments"); // or adjust according to your schema
+    const drivers = await User.find({}).populate("shipments"); // or adjust according to your schema
 
     if (drivers.length === 0) {
       return res.status(404).json({ message: "No drivers found." });
@@ -194,33 +198,33 @@ exports.getAllDrivers = async (req, res) => {
 //   }
 // };
 
-
-
 exports.deleteUser = async (req, res) => {
   try {
-      const { userId } = req.params; // Get user ID from request params
-      const adminId = req.user?.id; // Get admin ID from token (Middleware must set req.user)
+    const { userId } = req.params; // Get user ID from request params
+    const adminId = req.user?.id; // Get admin ID from token (Middleware must set req.user)
 
-      console.log(`Admin (${adminId}) attempting to delete User (${userId})`);
+    console.log(`Admin (${adminId}) attempting to delete User (${userId})`);
 
-      // Ensure user exists
-      let user = await User.findById(userId);
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    // Ensure user exists
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Prevent admins from deleting themselves
-      if (user._id.toString() === adminId) {
-          return res.status(403).json({ message: "Admins cannot delete themselves." });
-      }
+    // Prevent admins from deleting themselves
+    if (user._id.toString() === adminId) {
+      return res
+        .status(403)
+        .json({ message: "Admins cannot delete themselves." });
+    }
 
-      // Delete the user
-      await User.findByIdAndDelete(userId);
+    // Delete the user
+    await User.findByIdAndDelete(userId);
 
-      res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-      console.error("Delete User Error:", error);
-      res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Delete User Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -230,32 +234,32 @@ exports.searchDrivers = async (req, res, next) => {
   console.log("Received Query:", query);
 
   try {
-      let results;
+    let results;
 
-      if (!query || query.trim() === "") {
-          results = await User.find({ isAdmin: "driver" });
-              } else {
-          query = String(query).trim(); // Ensure it's a string
+    if (!query || query.trim() === "") {
+      results = await User.find({ isAdmin: "driver" });
+    } else {
+      query = String(query).trim(); // Ensure it's a string
 
-          results = await User.find({
-              $or: [
-                  { DriverName: { $regex: new RegExp(query, "i") } },
-                  { TruckNo: { $regex: new RegExp(query, "i") } },
-                  { IDNo: { $regex: new RegExp(query, "i") } },
-                  { phone: { $regex: new RegExp(query, "i") } },
-              ],
-          });
+      results = await User.find({
+        $or: [
+          { DriverName: { $regex: new RegExp(query, "i") } },
+          { TruckNo: { $regex: new RegExp(query, "i") } },
+          { IDNo: { $regex: new RegExp(query, "i") } },
+          { phone: { $regex: new RegExp(query, "i") } },
+        ],
+      });
 
-          if (results.length === 0) {
-              console.log("No matching users found, returning all users.");
-              results = await User.find();
-          }
+      if (results.length === 0) {
+        console.log("No matching users found, returning all users.");
+        results = await User.find();
       }
+    }
 
-      res.status(200).json(results);
+    res.status(200).json(results);
   } catch (error) {
-      console.error("Search error:", error); // Log detailed error
-      res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Search error:", error); // Log detailed error
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -279,38 +283,44 @@ exports.getDriverById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-      const { userId } = req.params; // Get user ID from URL params
-      const { DriverName, TruckNo, IDNo, phone, isAdmin } = req.body; // Get fields to update
-      const adminId = req.user?.id; // Get admin ID from token (Middleware must set req.user)
+    const { userId } = req.params; // Get user ID from URL params
+    const { DriverName, TruckNo, IDNo, phone, isAdmin } = req.body; // Get fields to update
+    const adminId = req.user?.id; // Get admin ID from token (Middleware must set req.user)
 
-      console.log(`Admin (${adminId}) updating User (${userId})`);
+    console.log(`Admin (${adminId}) updating User (${userId})`);
 
-      // Ensure user exists
-      let user = await User.findById(userId);
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    // Ensure user exists
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Prevent self-editing admin status
-      if (user.isAdmin && isAdmin !== undefined && req.user.id === user._id.toString()) {
-          return res.status(403).json({ message: "Admins cannot change their own admin status." });
-      }
+    // Prevent self-editing admin status
+    if (
+      user.isAdmin &&
+      isAdmin !== undefined &&
+      req.user.id === user._id.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Admins cannot change their own admin status." });
+    }
 
-      // Update user fields (Only update if new values exist)
-      user.DriverName = DriverName || user.DriverName;
-      user.TruckNo = TruckNo || user.TruckNo;
-      user.IDNo = IDNo || user.IDNo;
-      user.phone = phone || user.phone;
+    // Update user fields (Only update if new values exist)
+    user.DriverName = DriverName || user.DriverName;
+    user.TruckNo = TruckNo || user.TruckNo;
+    user.IDNo = IDNo || user.IDNo;
+    user.phone = phone || user.phone;
 
-      if (isAdmin !== undefined) {
-          user.isAdmin = isAdmin; // Allow admin to change role
-      }
+    if (isAdmin !== undefined) {
+      user.isAdmin = isAdmin; // Allow admin to change role
+    }
 
-      await user.save();
+    await user.save();
 
-      res.status(200).json({ message: "User updated successfully", user });
+    res.status(200).json({ message: "User updated successfully", user });
   } catch (error) {
-      console.error("Update User Error:", error);
-      res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Update User Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
