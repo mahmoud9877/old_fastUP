@@ -23,7 +23,6 @@ app.use(
   })
 );
 // routes
-
 app.use("/api/v1/auth", userRouter);
 app.use("/api/v1", shipmentRouter);
 // app.use("/api/v1", shipmentRouter);
