@@ -29,7 +29,7 @@ app.use("/api/v1", shipmentRouter);
 // app.use("/api/v1", shipmentRouter);
 
 // testing api
-app.get("/test", (req, res, next) => {
+app.get("/", (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "API is working",
