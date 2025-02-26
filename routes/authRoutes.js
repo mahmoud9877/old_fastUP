@@ -1,5 +1,5 @@
 const express = require("express");
-const {  login,addDriver, changePassword, editProfile, getAllDrivers, deleteUser, searchDrivers, getDriverById, updateUser } = require("../controllers/authController");
+const {  login,addDriver, changePassword, editProfile, getAllDrivers, deleteUser, searchDrivers, getDriverById, updateUser } = require("../controllers/authController.js");
 const { authorizeRoles } = require("../middleware/authMiddleware");
 const {isAuthenticated} = require("../middleware/authMiddleware");
 
