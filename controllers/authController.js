@@ -141,7 +141,7 @@ exports.editProfile = async (req, res, next) => {
 exports.getAllDrivers = async (req, res) => {
   try {
     // Find all users who are marked as drivers (modify this condition as per your schema)
-    const drivers = await User.find({}).populate("shipments"); // or adjust according to your schema
+    const drivers = await User.find().populate("shipments"); // or adjust according to your schema
 
     if (drivers.length === 0) {
       return res.status(404).json({ message: "No drivers found." });
